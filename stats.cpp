@@ -3,8 +3,8 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include <conio.h>  // pentru getch() și system("cls")
-#include <stdexcept> // pentru excepții
+#include <conio.h>  // getch() & system("cls")
+#include <stdexcept>
 
 using namespace std;
 #define RESET   "\033[0m"
@@ -204,6 +204,22 @@ void verifyScores() {
     }
 }
 
+bool checkPassword() {
+    const string SECRET_CODE = "bepa123";
+    string input;
+
+    cout << "Code: ";
+    cin >> input;
+
+    if (input == SECRET_CODE) {
+        return true;
+    } else {
+        cout << "  | Wrong\n";
+        getch();
+        return false;
+    }
+}
+
 int main() {
     try {
         while (true) {
@@ -226,8 +242,7 @@ int main() {
             cout << YELLOW << "  |" << RESET << "                                \n";
             cout << YELLOW << "  |" << RESET << "  "<<BLUE<<"1. "<<RESET<<YELLOW<<"Display Leaderboard        \n";
             cout << YELLOW << "  |" << RESET << "  "<<YELLOW<<"2. "<<RESET<<YELLOW<<"View Game History          \n";
-            cout << YELLOW << "  |" << RESET << "  "<<YELLOW<<"3. "<<RESET<<YELLOW<<"Verify and Save Score      \n";
-            cout << YELLOW << "  |" << RESET << "  "<<RED<<"4. "<<RESET<<YELLOW<<"Exit                       \n";
+            cout << YELLOW << "  |" << RESET << "  "<<RED<<"3. "<<RESET<<YELLOW<<"Exit                       \n";
             cout << YELLOW << "  |" << RESET << "                                \n";
             cout << YELLOW << "  |     Choose an option: ";
 
@@ -235,8 +250,12 @@ int main() {
             switch (choice) {
                 case '1': displayLeaderboard(); break;
                 case '2': viewGameHistory(); break;
-                case '3': verifyScores(); break;
-                case '4': return 0;
+                case '4':
+                    if (checkPassword()) {
+                        verifyScores();
+                    }
+                    break;
+                case '3': return 0;
                 default:
                     cout << "\nInvalid option. Try again.\n";
                     getch();
