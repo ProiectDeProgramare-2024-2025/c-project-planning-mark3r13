@@ -19,16 +19,29 @@ using namespace std;
 #define YELLOW  "\033[33m"
 #define BLUE    "\033[34m"
 
-typedef struct {
-    char question[256];
-    char answers[answers_nr][100];
-    int correct_index;
-} Question;
+// typedef struct {
+//     char question[256];
+//     char answers[answers_nr][100];
+//     int correct_index;
+// } Question;
 
-typedef struct {
-    char name[name_length];
-    float score;
-} Player;
+class Question {
+    public:
+        char question[256];
+        char answers[answers_nr][100];
+        int correct_index;
+};
+
+// typedef struct {
+//     char name[name_length];
+//     float score;
+// } Player;
+
+class Player {
+    public:
+        char name[name_length];
+        float score;
+};
 
 ofstream score("scores.txt", ios::app);
 
@@ -93,9 +106,9 @@ void loadQuestions(Question questions[]) {
     strcpy(questions[7].question, "Which of the following cities is GTA 5 based on?");
     strcpy(questions[7].answers[0], "Liberty City");
     strcpy(questions[7].answers[1], "Vice City");
-    strcpy(questions[7].answers[2], "Los Angeles");
-    strcpy(questions[7].answers[3], "Los Santos");// Correct
-    questions[7].correct_index = 3;
+    strcpy(questions[7].answers[2], "Los Angeles"); // Correct
+    strcpy(questions[7].answers[3], "Los Santos");
+    questions[7].correct_index = 2;
 
     // Set 9
     strcpy(questions[8].question, "Who painted the Mona Lisa?");
@@ -197,7 +210,7 @@ void startGame(Question questions[]) {
         player.score = 0;
 
         int i,j;
-        for ( i = 0; i < questions_nr; i++) {
+        for ( i = 0; i < 2; i++) {
             clearScreen();
             cout << endl;
             cout << YELLOW << "   ____________________________________________________________________\n";
