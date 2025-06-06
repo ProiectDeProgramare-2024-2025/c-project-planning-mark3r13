@@ -3,12 +3,21 @@
 #include <cstring>
 #include <windows.h>
 #include <conio.h>
+#include <iomanip>
 
 using namespace std;
 
 #define questions_nr 15
 #define answers_nr 4
 #define name_length 50
+
+// Colors
+
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
 
 typedef struct {
     char question[256];
@@ -21,7 +30,7 @@ typedef struct {
     float score;
 } Player;
 
-ofstream score("scores.txt");
+ofstream score("scores.txt", ios::app);
 
 void loadQuestions(Question questions[]) {
     // Set 1
@@ -149,107 +158,162 @@ void clearScreen() {
     system("cls");
 }
 
+int nameCheck(char name[]) {
+    if(strlen(name) > 50)
+        return -1;
+    
+    const char* lowercase = "abcdefghijklmnopqrstuvwxyz";
+    const char* uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    for(int i = 0; i < strlen(name); i++)
+        if(!(strchr(lowercase, name[i]) || strchr(uppercase, name[i])))
+            return -2;
+
+    return 0;
+}
+
+int ynCheck(char c) {
+    if(!(c == 'n' || c == 'y'))
+        return -3;
+    return 0;
+}
+
 void startGame(Question questions[]) {
     Player player;
-    printf("  |      Enter your name: ");
+    cout << YELLOW << "  |" << RESET << "      Enter your name: ";
     
-    // Error handling #01
-    //try {
-    
-    fgets(player.name, name_length, stdin);
-    player.name[strcspn(player.name, "\n")] = 0;
-    player.score = 0;
-    int i,j;
-    for ( i = 0; i < 4/*questions_nr*/; i++) {
-        clearScreen();
-        printf("\n");
-        printf("   ____________________________________________________________________\n");
-        printf("  |                                 \n");
-        printf("  |      Question %d: %s   \n", i + 1, questions[i].question);
-        printf("  |                                                   \n");
+    // Error handling
+    try {
+        char tempName[100];
 
-        for ( j = 0; j < answers_nr; j++) {
-            printf("  |         %d. %s                                  \n", j + 1, questions[i].answers[j]);
-        }
+        cin.getline(tempName, sizeof(tempName));
+        
+        int nameCh3ck = nameCheck(tempName);
+        if(nameCh3ck < 0) // Error -1 and -2
+            throw nameCh3ck;
+        else {
+        
+        strcpy(player.name,tempName);
+        player.score = 0;
 
-        printf("  |                                \n");
-        printf("  |       Use '50/50'? (y/n): ");
-        char use5050 = getchar();
-        getchar();
-        printf("  |________________________________\n");
-        clearScreen();
-        printf("\n");
-        printf("   _____________________________________________________________\n");
-        printf("  |                                 \n");
-        printf("  |      Question %d: %s   \n", i + 1, questions[i].question);
-        printf("  |                                 \n");
+        int i,j;
+        for ( i = 0; i < questions_nr; i++) {
+            clearScreen();
+            cout << endl;
+            cout << YELLOW << "   ____________________________________________________________________\n";
+            cout << YELLOW << "  |" << RESET << "                                 \n";
+            cout << YELLOW << "  |" << RESET << "      " << BLUE << "Question " << i + 1 << ": " << questions[i].question << "   \n";
+            cout << YELLOW << "  |" << RESET << "                                                   \n";
 
-        int visibleOptions[answers_nr];
-        int visibleCount = answers_nr;
-
-        for ( j = 0; j < answers_nr; j++) {
-            visibleOptions[j] = j;
-        }
-
-        if (use5050 == 'y' || use5050 == 'Y') {
-            int removedCount = 0;
             for ( j = 0; j < answers_nr; j++) {
-                if (j != questions[i].correct_index && removedCount < 2) {
-                    visibleOptions[j] = -1;
-                    removedCount++;
-                    visibleCount--;
+                cout << YELLOW << "  |" << RESET << "         " << j + 1 << ". " << questions[i].answers[j] << "                                  \n";
+            }
+
+            cout << YELLOW << "  |" << RESET << "                                \n";
+            cout << YELLOW << "  |" << BLUE << "      Use '50/50'?" << RED << " (y/n): ";
+
+            char use5050 = getchar(); // Error -3
+            if(ynCheck(use5050) == -3) {
+                i = questions_nr + 1;
+                throw -3;
+            }
+
+            getchar();
+            cout << YELLOW << "  |________________________________\n" << RESET;
+            clearScreen();
+            cout << "\n";
+            cout << YELLOW << "   _____________________________________________________________\n" << RESET;
+            cout << YELLOW << "  |" << RESET << "                                 \n";
+            cout << YELLOW << "  |" << RESET << "      Question " << YELLOW << i + 1 << RESET << ": " << BLUE << questions[i].question << RESET << "   \n";
+            cout << YELLOW << "  |" << RESET << "                                 \n";
+
+            int visibleOptions[answers_nr];
+            int visibleCount = answers_nr;
+
+            for ( j = 0; j < answers_nr; j++) {
+                visibleOptions[j] = j;
+            }
+
+            if (use5050 == 'y' || use5050 == 'Y') {
+                int removedCount = 0;
+                for ( j = 0; j < answers_nr; j++) {
+                    if (j != questions[i].correct_index && removedCount < 2) {
+                        visibleOptions[j] = -1;
+                        removedCount++;
+                        visibleCount--;
+                    }
+                }
+                player.score +=0.5;
+            }
+
+            int optionIndex = 0;
+            for ( j = 0; j < answers_nr; j++) {
+                if (visibleOptions[j] != -1) {
+                    cout << "  |         " << optionIndex + 1 << ". " << questions[i].answers[j] << "                                  \n";
+                    optionIndex++;
                 }
             }
-            player.score +=0.5;
-        }
 
-        int optionIndex = 0;
-        for ( j = 0; j < answers_nr; j++) {
-            if (visibleOptions[j] != -1) {
-                printf("  |         %d. %s                                  \n", optionIndex + 1, questions[i].answers[j]);
-                optionIndex++;
+            cout << YELLOW << "  |" << RESET << "                                 \n";
+            cout << YELLOW << "  |" << RESET << "       Select your answer (1-" << YELLOW << visibleCount << RESET << "): ";
+
+            int answer;
+            cin >> answer;
+
+            if (answer > visibleCount) {
+                i = questions_nr + 1;
+                throw -4;
             }
-        }
 
-        printf("  |                                 \n");
-        printf("  |       Select your answer (1-%d): ", visibleCount);
-        int answer;
-        scanf("%d", &answer);
-        getchar();
+            getchar();
 
-        int selectedIndex = -1;
-        optionIndex = 0;
-        for ( j = 0; j < answers_nr; j++) {
-            if (visibleOptions[j] != -1) {
-                if (optionIndex + 1 == answer) {
-                    selectedIndex = j;
-                    break;
+            int selectedIndex = -1;
+            optionIndex = 0;
+            for ( j = 0; j < answers_nr; j++) {
+                if (visibleOptions[j] != -1) {
+                    if (optionIndex + 1 == answer) {
+                        selectedIndex = j;
+                        break;
+                    }
+                    optionIndex++;
                 }
-                optionIndex++;
             }
-        }
 
-        if (selectedIndex == questions[i].correct_index) {
-            printf("  |                                 \n");
-            printf("  |             Correct!\n");
-            printf("  |_____________________________________________________________\n");
-            player.score += 1;
-        } else {
-            printf("  |                                 \n");
-            printf("  |      Wrong! The correct answer was: %s\n", questions[i].answers[questions[i].correct_index]);
-            printf("  |_____________________________________________________________\n");
+            if (selectedIndex == questions[i].correct_index) {
+                cout << YELLOW << "  |" << RESET << "                                 \n";
+                cout << YELLOW << "  |" << GREEN << "             Correct!\n" << RESET;
+                cout << YELLOW << "  |_____________________________________________________________\n" << RESET;
+                player.score += 1;
+            } else {
+                cout << YELLOW << "  |" << RESET << "                                 \n";
+                cout << YELLOW << "  |" << RED << "      Wrong! The correct answer was: " << questions[i].answers[questions[i].correct_index] << RESET << endl;
+                cout << YELLOW << "  |_____________________________________________________________\n" << RESET;
+            }
+            Sleep(1000);
         }
-        Sleep(1000);
+        cout << YELLOW << "  |" << RESET << "                                 \n";
+        cout << YELLOW << "  |" << RESET << "        Game Over! Your final score: " << GREEN << fixed << setprecision(2) << player.score << RESET << endl;
+        cout << YELLOW << "  |_____________________________________________________________\n" << RESET;
+
+        score << "# ";
+        score << player.name;
+        score << " ";
+        score << player.score;
+        score << endl;
+
+        }
     }
-    printf("  |                                 \n");
-    printf("  |        Game Over! Your final score: %.2f\n", player.score);
-    printf("  |_____________________________________________________________\n");
-
-    score << "# ";
-    score << player.name;
-    score << " ";
-    score << player.score;
-    score << endl;
+    catch(int error) {
+        cout << RED << "Access denied " << error << RESET << " -- ";
+        if(error == -1)
+            cout << "name is too long!" << endl;
+        else if(error == -2)
+            cout << "name can contain only letters of the standard English alphabet!" << endl;
+        else if(error == -3)
+            cout << "please use 'n' or 'y'!" << endl;
+        else if(error == -4)
+            cout << "invalid answer number!" << endl;
+    } 
 }
 
 int navigateMenu() {
@@ -258,30 +322,28 @@ int navigateMenu() {
 
     while (1) {
         clearScreen();
-        printf("   ________________________________\n");
-        printf("  |                                \n");
-        printf("  | Who Wants to Be a Millionaire? \n");
-        printf("  |                                \n");
-        printf("  |              by                \n");
-        printf("  |                                \n");
-        printf("  |         Albert-Adrian          \n");
-        printf("  |             Popa               \n");
-        printf("  |                                \n");
-        printf("  |               &                \n");
-        printf("  |                                \n");
-        printf("  |             Marko              \n");
-        printf("  |             Bele               \n");
-        printf("  |________________________________\n");
-        printf("  |                                \n");
-        printf("  |           *--Menu--*           \n");
-        printf("  |                                \n");
-        printf("  |     %s 1. Start Game           \n", (option == 1) ? "->" : "  ");
-        printf("  |                                \n");
-        printf("  |     %s 2. Exit                 \n", (option == 2) ? "->" : "  ");
-        printf("  |                                \n");
-        printf("  |________________________________\n");
-
-
+        cout << YELLOW << "   ________________________________\n" << RESET;
+        cout << YELLOW << "  |" << RESET << "                                \n";
+        cout << YELLOW << "  |" << RESET << "      " << BLUE << "Who Wants to Be a Millionaire?" << RESET << " \n";
+        cout << YELLOW << "  |" << RESET << "                                \n";
+        cout << YELLOW << "  |" << RESET << "              by                \n";
+        cout << YELLOW << "  |" << RESET << "                                \n";
+        cout << YELLOW << "  |" << RESET << "         " << BLUE << "Albert-Adrian          \n";
+        cout << YELLOW << "  |" << RESET << "             " << BLUE << "Popa               \n";
+        cout << YELLOW << "  |" << RESET << "                                \n";
+        cout << YELLOW << "  |" << RESET << "               &                \n";
+        cout << YELLOW << "  |" << RESET << "                                \n";
+        cout << YELLOW << "  |" << RESET << "             " << RED << "Marko              \n";
+        cout << YELLOW << "  |" << RESET << "             " << RED << "Bele               \n";
+        cout << YELLOW << "  |________________________________\n" << RESET;
+        cout << YELLOW << "  |" << RESET << "                                \n";
+        cout << YELLOW << "  |" << RESET << "           " << BLUE << "*--Menu--*           \n";
+        cout << YELLOW << "  |" << RESET << "                                \n";
+        cout << YELLOW << "  |" << RESET << "     " << (option == 1 ? GREEN "->" RESET : "  ") << " 1. Start Game           \n";
+        cout << YELLOW << "  |" << RESET << "                                \n";
+        cout << YELLOW << "  |" << RESET << "     " << (option == 2 ? GREEN "->" RESET : "  ") << " 2. Exit                 \n";
+        cout << YELLOW << "  |" << RESET << "                                \n";
+        cout << YELLOW << "  |________________________________\n" << RESET;
 
         ch = getch();
         if (ch == 224) { // Arrows detecting
@@ -304,7 +366,7 @@ int main() {
 
         switch (option) {
             case 1:
-                printf("  |                                \n");
+                cout << "  |                                \n";
                 startGame(questions);
                 break;
             // case 2:
@@ -324,12 +386,12 @@ int main() {
             // }
             case 2:
                 clearScreen();
-                printf("Exiting the game. Goodbye!\n");
+                cout << "Exiting the game. Goodbye!\n";
                 break;
             default:
-                printf("Invalid option. Please try again.\n");
+                cout << "Invalid option. Please try again.\n";
         }
-        printf("\nPress any key to continue...");
+        cout << "\nPress any key to continue...";
         getch();
     } while (option != 2);
 
