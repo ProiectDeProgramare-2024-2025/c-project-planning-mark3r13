@@ -210,7 +210,7 @@ void startGame(Question questions[]) {
         player.score = 0;
 
         int i,j;
-        for ( i = 0; i < 2; i++) {
+        for ( i = 0; i < 15; i++) {
             clearScreen();
             cout << endl;
             cout << YELLOW << "   ____________________________________________________________________\n";
